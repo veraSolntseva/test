@@ -6,13 +6,6 @@ using Test.ViewModels;
 
 namespace Test.Tools
 {
-    public class Paginator
-    {
-        public int? PageNumber { get; set; }
-
-        public int? StudentsCountAtPage { get; set; }
-    }
-
     public class StudentFilter
     {
         public int? GenderID { get; set; }
@@ -21,7 +14,12 @@ namespace Test.Tools
 
         public string UniqName { get; set; }
 
-        public string GroupName { get; set; }
+        public int? GroupId { get; set; }
+
+        public int? PageNumber { get; set; }
+
+        public int? StudentsCountAtPage { get; set; }
+
 
         public List<StudentViewModel> FilterList(List<StudentViewModel> studentList)
         {
@@ -34,8 +32,18 @@ namespace Test.Tools
             if(!string.IsNullOrEmpty(this.UniqName))
                 studentList = studentList.Where(s => s.UniqueName == this.UniqName).ToList();
 
-            if(!string.IsNullOrEmpty(this.GroupName))
-                studentList = studentList.Where(s => s.GroupList.Any(i => i.Name == this.GroupName)).ToList();
+            if(this.GroupId.HasValue)
+                studentList = studentList.Where(s => s.GroupList.Any(i => i.ID == this.GroupId)).ToList();
+
+            if (studentList.Count > 0 && this.PageNumber.HasValue && this.StudentsCountAtPage.HasValue && this.PageNumber > 0)
+            {
+                int firstIndex = (this.PageNumber.Value - 1) * this.StudentsCountAtPage.Value;
+
+                int countStudents = firstIndex + this.StudentsCountAtPage > studentList.Count ? studentList.Count - firstIndex : this.StudentsCountAtPage.Value;
+
+                if(studentList.Count >= firstIndex)
+                    studentList = studentList.GetRange(firstIndex, countStudents);
+            }
 
             return studentList;
         }

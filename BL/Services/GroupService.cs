@@ -42,6 +42,8 @@ namespace BL.Services
         {
             Group entity = group.FillToEntity();
 
+            entity.ID = 0;
+
             _context.Groups.Add(entity);
 
             try
@@ -65,6 +67,9 @@ namespace BL.Services
 
         public async Task UpdateGroup(GroupDataModel group)
         {
+            if (!(_context.Groups.Any(i => i.ID == group.ID)))
+                throw new Exception("Группа не найдена");
+
             Group entity = group.FillToEntity();
 
             _context.Entry(entity).State = EntityState.Modified;
@@ -84,6 +89,10 @@ namespace BL.Services
             Group group = await _context.Groups.FindAsync(groupId);
 
             _context.Groups.Remove(group);
+
+            List<StudentsInGroups> studentsInGroups = await _context.StudentsInGroups.Where(i => i.GroupId == groupId).ToListAsync();
+
+            _context.StudentsInGroups.RemoveRange(studentsInGroups);
 
             await _context.SaveChangesAsync();
         }

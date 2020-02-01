@@ -29,8 +29,7 @@ namespace Test.Controllers
 
 
         [HttpGet("[action]")]
-        public async Task<JsonResult> Index(Paginator paginator, StudentFilter filter)
-
+        public async Task<JsonResult> Index(StudentFilter filter)
         {
             List<StudentViewModel> studentViewList = new List<StudentViewModel>();
 
@@ -47,9 +46,6 @@ namespace Test.Controllers
                 return Json(new { error = ex.Message });
             }
 
-            if (paginator.PageNumber.HasValue && paginator.StudentsCountAtPage.HasValue && paginator.PageNumber > 0)
-                studentViewList = studentViewList.GetRange((paginator.PageNumber.Value - 1) * paginator.StudentsCountAtPage.Value, paginator.StudentsCountAtPage.Value);
-
             if (studentViewList != null)
                 studentViewList = filter.FilterList(studentViewList);
 
@@ -59,20 +55,31 @@ namespace Test.Controllers
         }
 
         [HttpGet("[action]/{id}")]
-        public async Task<StudentViewModel> Details(int id)
+        public async Task<JsonResult> Get(int id)
         {
             StudentDataModel student = await _studentService.GetStudent(id);
 
-            return new StudentViewModel(student);
+            if (student is null)
+                return Json(new { error = "Студент не найден" });
+
+            IEnumerable<GroupDataModel> groupList = await _groupService.GetGroupListForStudent(id);
+
+            return Json(new StudentViewModel(student, groupList));
         }
 
         [HttpPost]
         [Route("[action]")]
-        public async Task<IActionResult> Create(StudentDataModel student)
+        public async Task<IActionResult> Create([FromBody]StudentViewModel student)
         {
+            if (!ModelState.IsValid)
+                return BadRequest("Некорректные данные");
+
+            if (!(await _studentService.CheckUniqueName(student.UniqueName)))
+                return BadRequest("Такой уникальный идентификатор уже существует");
+
             try
             {
-                await _studentService.AddStudent(student);
+                await _studentService.AddStudent(student.GetDataModel());
             }
             catch
             {
@@ -103,7 +110,10 @@ namespace Test.Controllers
         public async Task<IActionResult> Edit([FromBody]StudentViewModel student)
         {
             if (!ModelState.IsValid || student.Id < 1)
-                return BadRequest();
+                return BadRequest("Некорректные данные");
+
+            if (!(await _studentService.CheckUniqueName(student.UniqueName)))
+                return BadRequest("Такой уникальный идентификатор уже существует");
 
             try
             {

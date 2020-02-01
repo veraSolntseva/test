@@ -42,6 +42,8 @@ namespace BL.Services
         {
             Student entity = student.FillToEntity();
 
+            entity.Id = 0;
+
             _context.Students.Add(entity);
 
             try
@@ -58,14 +60,14 @@ namespace BL.Services
         {
             Student entity = await _context.Students.Include(o => o.StudentsInGroups).AsNoTracking().FirstOrDefaultAsync(e => e.Id == studentId);
 
-            StudentDataModel student = entity is null ? new StudentDataModel() : new StudentDataModel(entity);
+            StudentDataModel student = entity is null ? null : new StudentDataModel(entity);
 
             return student;
         }
 
         public async Task UpdateStudent(StudentDataModel student)
         {
-            if(!(await GetStudent(student.Id) is StudentDataModel studentUnchangedDataModel))
+            if (!(_context.Students.Any(i => i.Id == student.Id)))
                 throw new Exception("Студент не найден");
 
             Student entity = student.FillToEntity();
@@ -88,8 +90,18 @@ namespace BL.Services
 
             _context.Students.Remove(student);
 
+            List<StudentsInGroups> studentsInGroups = await _context.StudentsInGroups.Where(i => i.StudentId == id).ToListAsync();
+
+            _context.StudentsInGroups.RemoveRange(studentsInGroups);
+
             await _context.SaveChangesAsync();
         }
 
+        public async Task<bool> CheckUniqueName(string uniqueName)
+        {
+            List<Student> studentList = await _context.Students.AsNoTracking().ToListAsync();
+
+            return !studentList.Any(s => s.UniqueName == uniqueName);
+        }
     }
 }

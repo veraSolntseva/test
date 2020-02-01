@@ -12,28 +12,30 @@ namespace Test.ViewModels
 {
     public class StudentViewModel
     {
-        [Required]
+        [Required(ErrorMessage ="Обязательное поле")]
         public int Id { get; set; }
 
+        [Required(ErrorMessage = "Обязательное поле")]
         public string Gender { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Обязательное поле")]
+        [Range(1, 2)]
         public int GenderId { get; set; }
 
-        [Required]
-        [StringLength(40)]
+        [Required(ErrorMessage = "Обязательное поле")]
+        [StringLength(40, ErrorMessage ="Не более 40 символов")]
         public string Surname { get; set; }
 
-        [Required]
-        [StringLength(40)]
+        [Required(ErrorMessage = "Обязательное поле")]
+        [StringLength(40, ErrorMessage = "Не более 40 символов")]
         public string Name { get; set; }
 
-        [Required]
-        [StringLength(60)]
+        [Required(ErrorMessage = "Обязательное поле")]
+        [StringLength(60, ErrorMessage = "Не более 60 символов")]
         public string MiddleName { get; set; }
 
-        [MinLength(6)]
-        [MaxLength(16)]
+        [MinLength(6, ErrorMessage = "Не менее 6 символов")]
+        [MaxLength(16, ErrorMessage = "Не более 16 символов")]
         public string UniqueName { get; set; }
 
         public List<GroupDataModel> GroupList { get; set; }
