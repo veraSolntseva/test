@@ -1,7 +1,5 @@
 ﻿using BL.Models;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BL.Interfaces
@@ -15,11 +13,11 @@ namespace BL.Interfaces
         Task<IEnumerable<GroupDataModel>> GetGroupList();
 
         /// <summary>
-        /// Получить список групп для студента
+        /// Получить список студентов 1 группы
         /// </summary>
-        /// <param name="studentId">ид студента</param>
+        /// <param name="groupId">ид группы</param>
         /// <returns></returns>
-        Task<IEnumerable<GroupDataModel>> GetGroupListForStudent(int studentId);
+        Task<IEnumerable<StudentDataModel>> GetStudentListForGroup(int groupId);
 
         /// <summary>
         /// получить группу
@@ -48,5 +46,21 @@ namespace BL.Interfaces
         /// <param name="groupId"></param>
         /// <returns></returns>
         Task DeleteGroup(int groupId);
+
+        /// <summary>
+        /// Добавить сотудников в группу
+        /// </summary>
+        /// <param name="studentIdArray">массив ид сотрудников</param>
+        /// <param name="groupId">id группы</param>
+        /// <returns></returns>
+        Task AddStudentToGroup(int studentId, int groupId);
+
+        /// <summary>
+        /// Удалить сотрудника из группы
+        /// </summary>
+        /// <param name="studentId">ид сотрудника</param>
+        /// <param name="groupId">ид группы</param>
+        /// <returns></returns>
+        Task RemoveStudentFromGroup(int studentId, int groupId);
     }
 }

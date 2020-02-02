@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BL.Services
@@ -22,20 +21,13 @@ namespace BL.Services
 
         public async Task<IEnumerable<StudentDataModel>> GetStudentList()
         {
-            List<StudentDataModel> studentList = (from e in await _context.Students.Include(o => o.StudentsInGroups).AsNoTracking().ToListAsync() select e)
-                .Select(e => new StudentDataModel(e)).OrderBy(e => e.FullName).ToList();
+            List<Student> studentList = await _context.Students.Include(o => o.StudentsInGroups).AsNoTracking().ToListAsync();
 
-            return studentList;
-        }
+            List<Group> groupList = await _context.Groups.Include(o => o.StudentsInGroups).AsNoTracking().ToListAsync();
 
-        public async Task<IEnumerable<StudentDataModel>> GetStudentListForGroup(int groupId)
-        {
-            List<Student> studentEntityList = (from e in await _context.Students.Include(i => i.StudentsInGroups).AsNoTracking().ToListAsync() select e)
-                .Where(i => i.StudentsInGroups.Any(s => s.GroupId == groupId)).ToList();
+            List<StudentDataModel> studentDataList = studentList.Select(s => new StudentDataModel(s, groupList.Where(g => s.StudentsInGroups.Any(i => i.GroupId == g.ID)))).ToList();
 
-            List<StudentDataModel> studentList = studentEntityList.Select(e => new StudentDataModel(e)).OrderBy(e => e.FullName).ToList();
-
-            return studentList;
+            return studentDataList;
         }
 
         public async Task AddStudent(StudentDataModel student)
@@ -60,9 +52,12 @@ namespace BL.Services
         {
             Student entity = await _context.Students.Include(o => o.StudentsInGroups).AsNoTracking().FirstOrDefaultAsync(e => e.Id == studentId);
 
-            StudentDataModel student = entity is null ? null : new StudentDataModel(entity);
+            if (entity is null)
+                return null;
 
-            return student;
+            List<Group> groupList = await _context.Groups.Include(o => o.StudentsInGroups).Where(g => entity.StudentsInGroups.Any(i => i.GroupId == g.ID)).AsNoTracking().ToListAsync();
+
+            return new StudentDataModel(entity, groupList);
         }
 
         public async Task UpdateStudent(StudentDataModel student)

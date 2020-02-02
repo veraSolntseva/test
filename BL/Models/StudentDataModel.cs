@@ -19,12 +19,25 @@ namespace BL.Models
 
         public string UniqueName { get; set; }
 
-        public List<int> GroupsIdList { get; set; }
+        public List<GroupDataModel> GroupList { get; set; }
 
-        public string FullName => this.Surname + " " + this.Name + " " + this.MiddleName;
 
 
         public StudentDataModel() { }
+
+        public StudentDataModel(Student student, IEnumerable<Group> groupList)
+        {
+            if (student is null)
+                return;
+
+            this.Id = student.Id;
+            this.Gender = (Gender)student.Gender;
+            this.Surname = student.Surname;
+            this.Name = student.Name;
+            this.MiddleName = student.MiddleName;
+            this.UniqueName = student.UniqueName;
+            this.GroupList = groupList?.Select(g => new GroupDataModel(g)).ToList();
+        }
 
         public StudentDataModel(Student student)
         {
@@ -37,7 +50,6 @@ namespace BL.Models
             this.Name = student.Name;
             this.MiddleName = student.MiddleName;
             this.UniqueName = student.UniqueName;
-            this.GroupsIdList = student.StudentsInGroups?.Select(i => i.GroupId).ToList();
         }
 
         public Student FillToEntity()

@@ -14,7 +14,7 @@ namespace Test.Tools
 
         public string UniqName { get; set; }
 
-        public int? GroupId { get; set; }
+        public string GroupName { get; set; }
 
         public int? PageNumber { get; set; }
 
@@ -32,8 +32,8 @@ namespace Test.Tools
             if(!string.IsNullOrEmpty(this.UniqName))
                 studentList = studentList.Where(s => s.UniqueName == this.UniqName).ToList();
 
-            if(this.GroupId.HasValue)
-                studentList = studentList.Where(s => s.GroupList.Any(i => i.ID == this.GroupId)).ToList();
+            if(!string.IsNullOrEmpty(this.GroupName))
+                studentList = studentList.Where(s => s.Groups.Contains(this.GroupName)).ToList();
 
             if (studentList.Count > 0 && this.PageNumber.HasValue && this.StudentsCountAtPage.HasValue && this.PageNumber > 0)
             {

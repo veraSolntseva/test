@@ -1,7 +1,5 @@
 ﻿using BL.Models;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BL.Interfaces
@@ -13,13 +11,6 @@ namespace BL.Interfaces
         /// </summary>
         /// <returns></returns>
         Task<IEnumerable<StudentDataModel>> GetStudentList();
-
-        /// <summary>
-        /// Получить список студентов 1 группы
-        /// </summary>
-        /// <param name="groupId">ид группы</param>
-        /// <returns></returns>
-        Task<IEnumerable<StudentDataModel>> GetStudentListForGroup(int groupId);
 
         /// <summary>
         /// Получить студента

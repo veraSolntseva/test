@@ -113,5 +113,59 @@ namespace Test.Controllers
 
             return Ok();
         }
+
+        [HttpGet("[action]")]
+        public async Task<JsonResult> GetStudentListForGroup(int groupId)
+        {
+            List<StudentViewModel> studentViewList = new List<StudentViewModel>();
+
+            try
+            {
+                IEnumerable<StudentDataModel> studentList = await _groupService.GetStudentListForGroup(groupId);
+
+                studentViewList = studentList.Select(x => new StudentViewModel(x)).ToList();
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
+            }
+
+            JsonResult result = Json(studentViewList?.Select(s => new { id = s.Id, fullName = s.FullName, uniqId = s.UniqueName }).ToList());
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<IActionResult> AddStudentsToGroup(int studentId, int groupId)
+        {
+            try
+            {
+                await _groupService.AddStudentToGroup(studentId, groupId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Route("[action]")]
+        public async Task<IActionResult> DeleteStudentFromGroup(int studentId, int groupId)
+        {
+            try
+            {
+                await _groupService.RemoveStudentFromGroup(studentId, groupId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
+
     }
 }

@@ -38,9 +38,9 @@ namespace Test.ViewModels
         [MaxLength(16, ErrorMessage = "Не более 16 символов")]
         public string UniqueName { get; set; }
 
-        public List<GroupDataModel> GroupList { get; set; }
+        public string Groups { get; set; }
 
-        public string FullName { get; set; }
+        public string FullName => this.Surname + " " + this.Name + " " + this.MiddleName;
 
 
 
@@ -55,22 +55,8 @@ namespace Test.ViewModels
             this.Name = studentDataModel.Name;
             this.MiddleName = studentDataModel.MiddleName;
             this.UniqueName = studentDataModel.UniqueName;
-            this.FullName = studentDataModel.FullName;
+            this.Groups = studentDataModel.GroupList is null ? "" : string.Join(',', studentDataModel.GroupList?.Select(g => g.Name));
         }
-
-        public StudentViewModel(StudentDataModel studentDataModel, IEnumerable<GroupDataModel> groups)
-        {
-            this.Id = studentDataModel.Id;
-            this.Gender = EnumHelper<Gender>.GetDisplayValue(studentDataModel.Gender);
-            this.GenderId = (int)studentDataModel.Gender;
-            this.Surname = studentDataModel.Surname;
-            this.Name = studentDataModel.Name;
-            this.MiddleName = studentDataModel.MiddleName;
-            this.UniqueName = studentDataModel.UniqueName;
-            this.FullName = studentDataModel.FullName;
-            this.GroupList = groups.ToList();
-        }
-
 
         public StudentDataModel GetDataModel()
         {

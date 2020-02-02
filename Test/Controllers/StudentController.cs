@@ -37,9 +37,7 @@ namespace Test.Controllers
             {
                 IEnumerable<StudentDataModel> studentList = await _studentService.GetStudentList();
 
-                IEnumerable<GroupDataModel> groupList = await _groupService.GetGroupList();
-
-                studentViewList = studentList.Select(x => new StudentViewModel(x, groupList.Where(i => x.GroupsIdList.Contains(i.ID)))).ToList();
+                studentViewList = studentList.Select(x => new StudentViewModel(x)).ToList();
             }
             catch (Exception ex)
             {
@@ -49,7 +47,7 @@ namespace Test.Controllers
             if (studentViewList != null)
                 studentViewList = filter.FilterList(studentViewList);
 
-            JsonResult result = Json(studentViewList?.Select(s => new { id = s.Id, fullName = s.FullName, uniqId = s.UniqueName, groups = String.Join(',', s.GroupList.Select(i => i.Name)) }).ToList());
+            JsonResult result = Json(studentViewList?.Select(s => new { id = s.Id, fullName = s.FullName, uniqId = s.UniqueName, groups = s.Groups }).ToList());
 
             return result;
         }
@@ -62,9 +60,7 @@ namespace Test.Controllers
             if (student is null)
                 return Json(new { error = "Студент не найден" });
 
-            IEnumerable<GroupDataModel> groupList = await _groupService.GetGroupListForStudent(id);
-
-            return Json(new StudentViewModel(student, groupList));
+            return Json(new StudentViewModel(student));
         }
 
         [HttpPost]
@@ -112,7 +108,7 @@ namespace Test.Controllers
             if (!ModelState.IsValid || student.Id < 1)
                 return BadRequest("Некорректные данные");
 
-            if (!(await _studentService.CheckUniqueName(student.UniqueName)))
+            if (!string.IsNullOrEmpty(student.UniqueName) && !(await _studentService.CheckUniqueName(student.UniqueName)))
                 return BadRequest("Такой уникальный идентификатор уже существует");
 
             try

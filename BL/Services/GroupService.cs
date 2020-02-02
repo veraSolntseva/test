@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BL.Services
@@ -28,14 +27,15 @@ namespace BL.Services
             return groupList;
         }
 
-        public async Task<IEnumerable<GroupDataModel>> GetGroupListForStudent(int studentId)
+        public async Task<IEnumerable<StudentDataModel>> GetStudentListForGroup(int groupId)
         {
-            List<Group> groupEntityList = (from e in await _context.Groups.Include(i => i.StudentsInGroups).AsNoTracking().ToListAsync() select e)
-                .Where(i => i.StudentsInGroups.Any(s => s.StudentId == studentId)).ToList();
+            List<Student> studentEntityList = await _context.Students.Include(o => o.StudentsInGroups).AsNoTracking().ToListAsync();
 
-            List<GroupDataModel> groupList = groupEntityList.Select(e => new GroupDataModel(e)).OrderBy(e => e.Name).ToList();
+            studentEntityList = studentEntityList.Where(s => s.StudentsInGroups.Any(i => i.GroupId == groupId)).ToList();
 
-            return groupList;
+            List<StudentDataModel> studentList = studentEntityList.Select(e => new StudentDataModel(e)).ToList();
+
+            return studentList;
         }
 
         public async Task AddGroup(GroupDataModel group)
@@ -44,10 +44,10 @@ namespace BL.Services
 
             entity.ID = 0;
 
-            _context.Groups.Add(entity);
-
             try
             {
+                _context.Groups.Add(entity);
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -60,9 +60,10 @@ namespace BL.Services
         {
             Group entity = await _context.Groups.Include(o => o.StudentsInGroups).AsNoTracking().FirstOrDefaultAsync(e => e.ID == groupId);
 
-            GroupDataModel group = entity is null ? new GroupDataModel() : new GroupDataModel(entity);
+            if (entity is null)
+                return null;
 
-            return group;
+            return new GroupDataModel(entity);
         }
 
         public async Task UpdateGroup(GroupDataModel group)
@@ -72,10 +73,10 @@ namespace BL.Services
 
             Group entity = group.FillToEntity();
 
-            _context.Entry(entity).State = EntityState.Modified;
-
             try
             {
+                _context.Entry(entity).State = EntityState.Modified;
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -95,6 +96,50 @@ namespace BL.Services
             _context.StudentsInGroups.RemoveRange(studentsInGroups);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task AddStudentToGroup(int studentId, int groupId)
+        {
+            Student student = await _context.Students.FirstOrDefaultAsync(s => s.Id == studentId);
+
+            Group group = await _context.Groups.FirstOrDefaultAsync(g => g.ID == groupId);
+
+            if (student is null || group is null)
+                throw new Exception("Некорректные данные");
+
+            StudentsInGroups studentsInGroups = new StudentsInGroups()
+            {
+                GroupId = groupId,
+                StudentId = studentId
+            };
+
+            try
+            {
+                _context.StudentsInGroups.Add(studentsInGroups);
+
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw new Exception("Ошибка добавления в базу данных.");
+            }
+        }
+
+        public async Task RemoveStudentFromGroup(int studentId, int groupId)
+        {
+            if (!(await _context.StudentsInGroups.FirstOrDefaultAsync(i => i.GroupId == groupId && i.StudentId == studentId) is StudentsInGroups entity))
+                throw new Exception("Некорректные данные");
+
+            try
+            {
+                _context.StudentsInGroups.Remove(entity);
+
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }
